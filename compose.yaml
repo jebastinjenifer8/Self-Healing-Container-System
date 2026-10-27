@@ -1,0 +1,12 @@
+
+
+services:
+  self-healing-app:
+    build: .
+    container_name: self-healing-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
