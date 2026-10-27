@@ -1,0 +1,16 @@
+# Terraform state and local files
+terraform.tfstate
+terraform.tfstate.*
+.terraform/
+crash.log
+
+# Python files
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Secrets
+.env
+# Local database
+recovery_logs.db

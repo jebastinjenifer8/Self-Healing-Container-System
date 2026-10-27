@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SELF-HEALING-CONTAINER | Container Monitoring</title>
+
+<style>
+:root {
+    --bg: #0b1020;
+    --panel: #121a2d;
+    --panel2: #172238;
+    --border: #26334b;
+    --text: #edf2ff;
+    --muted: #91a0ba;
+    --purple: #9b8cff;
+    --blue: #63b3ff;
+    --green: #45d6a0;
+    --red: #ff7185;
+    --yellow: #ffca72;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(ellipse at 10% 0%, #25204b 0, transparent 36%),
+        radial-gradient(ellipse at 100% 10%, #102e49 0, transparent 28%),
+        var(--bg);
+    color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+}
+
+button { font: inherit; }
+
+.app {
+    width: min(1450px, 100%);
+    margin: auto;
+    padding: 28px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    font-size: 25px;
+    background: linear-gradient(135deg, #8874ff, #4c9dff);
+    box-shadow: 0 8px 30px #6556e644;
+}
+
+.brand h1 {
+    font-size: 23px;
+    margin: 0;
+    letter-spacing: -.7px;
+}
+
+.brand p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.connection {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border: 1px solid var(--border);
+    background: #111a2cbb;
+    border-radius: 12px;
+    padding: 11px 14px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+}
+
+.dot.online { background: var(--green); box-shadow: 0 0 12px #45d6a066; }
+.dot.offline { background: var(--red); }
+
+.btn {
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--text);
+    border-radius: 11px;
+    padding: 11px 15px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn:hover { border-color: var(--purple); transform: translateY(-1px); }
+.btn.primary {
+    background: linear-gradient(135deg, #7966ef, #527ee9);
+    border: 0;
+}
+.btn:disabled { opacity: .55; cursor: wait; }
+
+.welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 0 0 24px;
+}
+
+.welcome h2 {
+    margin: 0;
+    font-size: clamp(23px, 3vw, 31px);
+    letter-spacing: -1px;
+}
+
+.welcome p {
+    color: var(--muted);
+    margin: 8px 0 0;
+    font-size: 14px;
+}
+
+.live-label {
+    color: var(--green);
+    font-size: 12px;
+    background: #17392f;
+    border: 1px solid #235d49;
+    border-radius: 30px;
+    padding: 9px 13px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 17px;
+    margin-bottom: 23px;
+}
+
+.stat {
+    padding: 21px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: linear-gradient(145deg, #172239, #111827);
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::after {
+    content: "";
+    position: absolute;
+    width: 95px;
+    height: 95px;
+    right: -35px;
+    top: -40px;
+    border-radius: 50%;
+    background: var(--glow, #8b7bff);
+    opacity: .10;
+    filter: blur(4px);
+}
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-label { color: var(--muted); font-size: 13px; }
+
+.stat-icon {
+    width: 37px;
+    height: 37px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    background: #ffffff0c;
+}
+
+.stat-value {
+    font-size: 33px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    letter-spacing: -1px;
+}
+
+.stat-note { color: var(--muted); font-size: 12px; }
+
+.section {
+    background: #111a2b;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    margin-bottom: 22px;
+    overflow: hidden;
+}
+
+.section-head {
+    padding: 21px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.section-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.table-wrap { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    text-align: left;
+}
+
+th {
+    color: #8798b4;
+    background: #151f33;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 650;
+}
+
+th, td {
+    padding: 16px 21px;
+    border-bottom: 1px solid #202c41;
+}
+
+td { font-size: 13px; color: #dbe4f6; }
+tbody tr:hover { background: #ffffff04; }
+tbody tr:last-child td { border-bottom: 0; }
+
+.container-name {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-weight: 600;
+}
+
+.container-icon {
+    width: 35px;
+    height: 35px;
+    display: grid;
+    place-items: center;
+    background: #272446;
+    border: 1px solid #3c376b;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.mono {
+    font-family: Consolas, monospace;
+    color: #aab9d2;
+    font-size: 12px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 30px;
+    padding: 7px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.badge.running, .badge.success {
+    color: var(--green);
+    background: #16382f;
+}
+.badge.stopped, .badge.failed {
+    color: var(--red);
+    background: #40232f;
+}
+.badge.other {
+    color: var(--yellow);
+    background: #40341f;
+}
+
+.recover-btn {
+    border: 1px solid #51458b;
+    color: #c3b9ff;
+    background: #282347;
+    padding: 7px 11px;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+.recover-btn:hover { background: #3a3065; }
+.recover-btn:disabled { opacity: .5; cursor: wait; }
+
+.event-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    margin-right: 9px;
+    background: #222d43;
+}
+
+.empty {
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+}
+
+.notice {
+    display: none;
+    padding: 13px 16px;
+    margin-bottom: 20px;
+    border-radius: 11px;
+    border: 1px solid #6d4930;
+    background: #30251e;
+    color: #ffd5a4;
+    font-size: 13px;
+}
+
+.notice.error {
+    border-color: #713d4b;
+    background: #321f2a;
+    color: #ffb4c0;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: #7888a3;
+    font-size: 11px;
+    padding: 5px 2px 15px;
+}
+
+@media (max-width: 950px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 550px) {
+    .app { padding: 16px; }
+    .stats { gap: 10px; }
+    .stat { padding: 15px; }
+    .stat-value { font-size: 27px; }
+    .brand h1 { font-size: 19px; }
+    .connection { padding: 10px; }
+    .section-head { padding: 16px; }
+    th, td { padding: 13px 15px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">♻️</div>
+            <div>
+                <h1>SELF-HEALING CONTAINER MANAGEMENT</h1>
+                
+            </div>
+        </div>
+
+        <div class="actions">
+            <div class="connection">
+                <span class="dot" id="connectionDot"></span>
+                <span id="connectionText">Connecting to Docker...</span>
+            </div>
+            <button class="btn" id="refreshBtn" onclick="refreshDashboard(true)">
+                ↻ Refresh
+            </button>
+        </div>
+    </header>
+
+    <section class="welcome">
+        <div>
+            <h2>Container Overview</h2>
+            
+        </div>
+        <div class="live-label">● LIVE MONITORING</div>
+    </section>
+
+    <div id="notice" class="notice"></div>
+
+    <section class="stats">
+        <article class="stat" style="--glow:#8b7bff">
+            <div class="stat-top">
+                <span class="stat-label">Total Containers</span>
+                <span class="stat-icon">▦</span>
+            </div>
+            <div class="stat-value" id="totalCount">—</div>
+            <div class="stat-note">All detected containers</div>
+        </article>
+
+        <article class="stat" style="--glow:#45d6a0">
+            <div class="stat-top">
+                <span class="stat-label">Running</span>
+                <span class="stat-icon">▶</span>
+            </div>
+            <div class="stat-value" id="runningCount">—</div>
+            <div class="stat-note">Currently active</div>
+        </article>
+
+        <article class="stat" style="--glow:#ff7185">
+            <div class="stat-top">
+                <span class="stat-label">Stopped / Failed</span>
+                <span class="stat-icon">Ⅱ</span>
+            </div>
+            <div class="stat-value" id="stoppedCount">—</div>
+            <div class="stat-note">Not currently running</div>
+        </article>
+
+        <article class="stat" style="--glow:#63b3ff">
+            <div class="stat-top">
+                <span class="stat-label">Recovery Successes</span>
+                <span class="stat-icon">↗</span>
+            </div>
+            <div class="stat-value" id="recoveryCount">—</div>
+            <div class="stat-note">Successful recovery events in logs</div>
+        </article>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h3 class="section-title">Container Fleet</h3>
+                <div class="section-subtitle">Live status of Docker containers</div>
+            </div>
+            <span class="badge running" id="fleetStatus">Monitoring</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Container</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th>Container ID</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="containerRows">
+                    <tr><td colspan="5" class="empty">Loading containers...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h3 class="section-title">Recovery Activity</h3>
+                <div class="section-subtitle">Latest events recorded by the monitoring service</div>
+            </div>
+            <span class="mono" id="logCount">0 events</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Container</th>
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="logRows">
+                    <tr><td colspan="4" class="empty">Loading activity...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <span>HealOps · Self-Healing Container Management System</span>
+        <span id="lastUpdated">Waiting for first update...</span>
+    </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+function showNotice(message, isError = false) {
+    const notice = $("notice");
+    notice.textContent = message;
+    notice.className = "notice" + (isError ? " error" : "");
+    notice.style.display = message ? "block" : "none";
+}
+
+function setConnection(online) {
+    $("connectionDot").className = "dot " + (online ? "online" : "offline");
+    $("connectionText").textContent = online
+        ? "Docker Connected"
+        : "Docker Disconnected";
+    $("fleetStatus").textContent = online ? "Monitoring" : "Disconnected";
+    $("fleetStatus").className = "badge " + (online ? "running" : "stopped");
+}
+
+function statusBadge(status) {
+    const s = String(status || "unknown").toLowerCase();
+
+    if (s === "running") {
+        return '<span class="badge running">Running</span>';
+    }
+
+    if (["exited", "dead", "stopped", "removing"].includes(s)) {
+        return '<span class="badge stopped">' + escapeHTML(status) + '</span>';
+    }
+
+    return '<span class="badge other">' + escapeHTML(status || "Unknown") + '</span>';
+}
+
+function eventBadge(event) {
+    const e = String(event || "EVENT");
+    const lower = e.toLowerCase();
+
+    if (lower.includes("success")) {
+        return '<span class="badge success">' + escapeHTML(e) + '</span>';
+    }
+
+    if (lower.includes("fail") || lower.includes("error")) {
+        return '<span class="badge failed">' + escapeHTML(e) + '</span>';
+    }
+
+    return '<span class="badge other">' + escapeHTML(e) + '</span>';
+}
+
+function formatTime(value) {
+    if (!value) return "—";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return escapeHTML(value);
+
+    return date.toLocaleString();
+}
+
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        throw new Error(url + " returned HTTP " + response.status);
+    }
+    return response.json();
+}
+
+async function loadContainers() {
+    const rows = $("containerRows");
+
+    try {
+        const data = await fetchJSON("/api/containers");
+
+        if (!Array.isArray(data)) {
+            throw new Error(data.error || "Unexpected container response");
+        }
+
+        const running = data.filter(c => c.status === "running").length;
+        $("totalCount").textContent = data.length;
+        $("runningCount").textContent = running;
+        $("stoppedCount").textContent = data.length - running;
+
+        if (data.length === 0) {
+            rows.innerHTML = '<tr><td colspan="5" class="empty">No Docker containers found.</td></tr>';
+            return;
+        }
+
+        rows.innerHTML = data.map(c => {
+            const name = c.name || "Unnamed container";
+            const image = Array.isArray(c.image)
+                ? c.image.join(", ") || "Unknown image"
+                : c.image || "Unknown image";
+            const status = String(c.status || "unknown");
+            const id = c.id || "—";
+            const isRunning = status.toLowerCase() === "running";
+
+            return `
+                <tr>
+                    <td>
+                        <div class="container-name">
+                            <span class="container-icon">▣</span>
+                            <span>${escapeHTML(name)}</span>
+                        </div>
+                    </td>
+                    <td>${escapeHTML(image)}</td>
+                    <td>${statusBadge(status)}</td>
+                    <td class="mono">${escapeHTML(id)}</td>
+                    <td>
+                        ${isRunning
+                            ? '<span style="color:#71819c;font-size:12px">No action needed</span>'
+                            : `<button class="recover-btn" onclick="recoverContainer('${encodeURIComponent(name)}', this)">↻ Recover</button>`
+                        }
+                    </td>
+                </tr>`;
+        }).join("");
+
+    } catch (error) {
+        rows.innerHTML = '<tr><td colspan="5" class="empty">Unable to load containers. Check the Flask terminal and Docker Desktop.</td></tr>';
+        throw error;
+    }
+}
+
+async function loadLogs() {
+    const rows = $("logRows");
+    const data = await fetchJSON("/api/logs");
+
+    if (!Array.isArray(data)) {
+        throw new Error(data.error || "Unexpected recovery log response");
+    }
+
+    const successes = data.filter(log =>
+        String(log.event || "").toLowerCase().includes("recovery success")
+    ).length;
+
+    $("recoveryCount").textContent = successes;
+    $("logCount").textContent = data.length + (data.length === 1 ? " event" : " events");
+
+    if (data.length === 0) {
+        rows.innerHTML = '<tr><td colspan="4" class="empty">No recovery activity recorded yet.</td></tr>';
+        return;
+    }
+
+    rows.innerHTML = data.map(log => {
+        const container = log.container ?? log.container_name ?? "System";
+        const details = log.details ?? log.message ?? "—";
+        const time = log.time ?? log.timestamp ?? log.created_at;
+
+        return `
+            <tr>
+                <td>${eventBadge(log.event)}</td>
+                <td>${escapeHTML(container)}</td>
+                <td>${escapeHTML(details)}</td>
+                <td class="mono">${formatTime(time)}</td>
+            </tr>`;
+    }).join("");
+}
+
+async function recoverContainer(encodedName, button) {
+    const name = decodeURIComponent(encodedName);
+
+    if (!confirm("Attempt to restart container '" + name + "'?")) return;
+
+    button.disabled = true;
+    button.textContent = "Recovering...";
+
+    try {
+        const result = await fetchJSON(
+            "/api/recover/" + encodeURIComponent(name),
+            { method: "POST" }
+        );
+
+        showNotice(result.message || "Recovery request completed.");
+        await refreshDashboard(false);
+    } catch (error) {
+        showNotice("Recovery failed: " + error.message, true);
+    } finally {
+        button.disabled = false;
+        button.textContent = "↻ Recover";
+    }
+}
+
+async function refreshDashboard(manual = false) {
+    const refreshBtn = $("refreshBtn");
+    if (manual) refreshBtn.disabled = true;
+
+    let connected = false;
+    const errors = [];
+
+    try {
+        const health = await fetchJSON("/api/health");
+        connected = health.docker_status === "Connected";
+        setConnection(connected);
+    } catch (error) {
+        setConnection(false);
+        errors.push("Health check failed");
+    }
+
+    try {
+        await loadContainers();
+        connected = true;
+    } catch (error) {
+        errors.push("Containers could not be loaded");
+    }
+
+    try {
+        await loadLogs();
+    } catch (error) {
+        errors.push("Recovery logs could not be loaded");
+        $("logRows").innerHTML =
+            '<tr><td colspan="4" class="empty">Unable to load recovery activity.</td></tr>';
+    }
+
+    if (!connected) setConnection(false);
+
+    if (errors.length) {
+        showNotice(errors.join(". ") + ". Check that Flask and Docker Desktop are running.", true);
+    } else {
+        showNotice("");
+    }
+
+    $("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    refreshBtn.disabled = false;
+}
+
+refreshDashboard();
+setInterval(() => refreshDashboard(false), 5000);
+</script>
+</body>
+</html>
